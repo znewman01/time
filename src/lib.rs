@@ -189,20 +189,6 @@ macro_rules! div_floor {
     }};
 }
 
-/// Euclidean remainder. Useful for `const` contexts.
-macro_rules! rem_euclid {
-    ($a:expr, $b:expr) => {{
-        let _a = $a;
-        let _b = $b;
-        let r = _a % _b;
-        if r < 0 {
-            if _b < 0 { r - _b } else { r + _b }
-        } else {
-            r
-        }
-    }};
-}
-
 /// Cascade an out-of-bounds value.
 macro_rules! cascade {
     (@ordinal ordinal) => {};
