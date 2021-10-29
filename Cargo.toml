@@ -50,7 +50,7 @@ libc = "0.2.98"
 criterion = "0.3.5"
 criterion-cycles-per-byte = "0.1.2"
 rand = { version = "0.8.4", default-features = false }
-serde = { version = "1.0.126", default-features = false }
+serde = { version = "1.0.126", default-features = false, features = [ "derive" ] }
 serde_test = "1.0.126"
 
 [target.'cfg(__ui_tests)'.dev-dependencies]
