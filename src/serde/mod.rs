@@ -5,8 +5,6 @@
 // Types with guaranteed stable serde representations. Strings are avoided to allow for optimal
 // representations in various binary forms.
 
-#[cfg(feature = "macros")]
-pub mod macros;
 pub mod timestamp;
 
 use serde::de::Error as _;
