@@ -77,7 +77,7 @@ impl serde::de::Expected for ComponentRange {
 #[cfg(feature = "serde")]
 impl ComponentRange {
     /// Obtain an "invalid value" error type for the deserializer.
-    #[doc(hidden)] // Exposed only for the `declare_format!` macros
+    #[doc(hidden)] // Exposed only for the `declare_format_string_*` macros
     pub fn to_invalid_serde_value<'a, D: serde::Deserializer<'a>>(self) -> D::Error {
         <D::Error as serde::de::Error>::invalid_value(
             serde::de::Unexpected::Signed(self.value),
