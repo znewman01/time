@@ -6,8 +6,6 @@
 // representations in various binary forms.
 
 pub mod timestamp;
-#[cfg(feature = "serde-human-readable")]
-pub mod well_known;
 
 use serde::de::Error as _;
 #[cfg(feature = "serde-human-readable")]

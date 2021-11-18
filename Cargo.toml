@@ -33,7 +33,7 @@ local-offset = ["std"]
 macros = ["time-macros"]
 parsing = []
 quickcheck = ["quickcheck-dep", "alloc"]
-serde-human-readable = ["serde/alloc", "formatting", "parsing"]
+serde-human-readable = ["serde", "formatting", "parsing"]
 std = ["alloc"]
 
 [dependencies]

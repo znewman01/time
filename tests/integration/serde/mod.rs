@@ -6,7 +6,6 @@ mod error_conditions;
 #[cfg(feature = "macros")]
 mod macros;
 mod timestamps;
-mod well_known;
 
 #[test]
 fn time() {
