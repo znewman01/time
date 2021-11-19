@@ -114,7 +114,7 @@ fn make_serde_serializer_module(
         ) -> Result<#(formattable.clone()), D::Error> {
             use ::serde::Deserialize;
             #(formattable.clone())::parse(<&str>::deserialize(deserializer)?, &DESCRIPTION)
-                .map_err(time::error::Parse::to_invalid_serde_value::<D>)
+                .map_err(::time::error::Parse::to_invalid_serde_value::<D>)
         }
     };
     let option_serialize_fns = quote! {
@@ -134,20 +134,22 @@ fn make_serde_serializer_module(
         ) -> Result<Option<#(formattable.clone())>, D::Error> {
             use ::serde::Deserialize;
             Option::<&str>::deserialize(deserializer)?
-                .map(|string| #(formattable)::parse(string, &DESCRIPTION))
+                .map(|string| #(formattable.clone())::parse(string, &DESCRIPTION))
                 .transpose()
-                .map_err(time::error::Parse::to_invalid_serde_value::<D>)
+                .map_err(::time::error::Parse::to_invalid_serde_value::<D>)
         }
     };
 
     quote! {
         mod #(mod_name) {
+            use super::#(formattable.clone());
+
             const DESCRIPTION: &[::time::format_description::FormatItem<'_>] = &[#(items)];
 
             #(serialize_fns)
 
             pub mod option {
-                use super::DESCRIPTION;
+                use super::{DESCRIPTION, #(formattable)};
 
                 #(option_serialize_fns)
             }
@@ -155,7 +157,8 @@ fn make_serde_serializer_module(
     }
 }
 
-fn declare_format_string(input: TokenStream, formattable: TokenStream) -> TokenStream {
+#[proc_macro]
+pub fn declare_format_string(input: TokenStream) -> TokenStream {
     let mut tokens = input.into_iter();
     // First, an identifier (the desired module name)
     let mod_name = match tokens.next() {
@@ -176,6 +179,26 @@ fn declare_format_string(input: TokenStream, formattable: TokenStream) -> TokenS
             return Error::UnexpectedEndOfInput.to_compile_error_standalone();
         }
     };
+    // Then, the type to create serde serializers for (e.g., `OffsetDateTime`).
+    // (We grab everything up to the next comma.)
+    // This should be a [TypePath].
+    // [TypePath] https://doc.rust-lang.org/reference/paths.html#paths-in-types
+    let mut components = vec![];
+    loop {
+        match tokens.next() {
+            Some(TokenTree::Ident(ident)) => {
+                components.push(TokenTree::Ident(ident));
+            }
+            Some(TokenTree::Punct(punct)) if punct == ',' => {
+                break;
+            }
+            Some(tree) => {
+                components.push(tree);
+            }
+            None => return Error::UnexpectedEndOfInput.to_compile_error_standalone(),
+        }
+    }
+    let formattable: TokenStream = components.into_iter().collect();
     // Then, a string literal.
     let input = TokenStream::from_iter(tokens);
     let (span, string) = match helpers::get_string_literal(input) {
@@ -189,15 +212,5 @@ fn declare_format_string(input: TokenStream, formattable: TokenStream) -> TokenS
     };
     let items: TokenStream = items.into_iter().map(|item| quote! { #(item), }).collect();
 
-    make_serde_serializer_module(mod_name, items, formattable)
-}
-
-#[proc_macro]
-pub fn declare_format_string_offset_date_time(input: TokenStream) -> TokenStream {
-    declare_format_string(input, quote! {::time::OffsetDateTime })
-}
-
-#[proc_macro]
-pub fn declare_format_string_primitive_date_time(input: TokenStream) -> TokenStream {
-    declare_format_string(input, quote! {::time::PrimitiveDateTime })
+    make_serde_serializer_module(mod_name, items, formattable.into())
 }
